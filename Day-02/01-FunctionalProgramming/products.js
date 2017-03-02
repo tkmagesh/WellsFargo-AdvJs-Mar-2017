@@ -1,5 +1,5 @@
 var products = [
-	{id : 7, name : "Pen", cost : 90, units : 50, category : "stationary"},
+	{id : 7, name : "Pen", cost : 30, units : 50, category : "stationary"},
 	{id : 3, name : "Hen", cost : 50, units : 80, category : "grocery"},
 	{id : 9, name : "Pencil", cost : 70, units : 30, category : "stationary"},
 	{id : 6, name : "Len", cost : 80, units : 20, category : "grocery"},
@@ -149,7 +149,9 @@ describe('Filter', function(){
 				return !criteriaFn.apply(this, arguments);
 			}
 		}
-
+		var OverstockedProductCriteria = function(product){
+			return product.units >= 50;
+		};
 		describe('Filter products by units', function(){
 			var OverstockedProductCriteria = function(product){
 				return product.units >= 50;
@@ -169,11 +171,11 @@ describe('Filter', function(){
 				console.table(UnderstockedProducts);
 			});
 		});
-
+		var costlyProductCriteria = function(product){
+			return product.cost > 50;
+		}
 		describe('Filter products by cost', function(){
-			var costlyProductCriteria = function(product){
-				return product.cost > 50;
-			}
+			
 			describe('Costly products [cost > 50]', function(){
 				var costlyProducts = filter(products, costlyProductCriteria);
 				console.table(costlyProducts);
@@ -187,12 +189,103 @@ describe('Filter', function(){
 				console.table(affordableProducts);
 			});
 		});
+
+		describe('Filter costly or Understocked products', function(){
+			function orCriteriaFn(criteriaFn1, criteriaFn2){
+				return function(){
+					return criteriaFn1.apply(this, arguments) || criteriaFn2.apply(this, arguments);
+				}
+			}
+			var UnderstockedProductCriteria = negate(OverstockedProductCriteria);
+			var UnderstockedOrCostlyProductCriteria = orCriteriaFn(UnderstockedProductCriteria, costlyProductCriteria);
+			var UnderstockedOrCostlyProducts = filter(products, UnderstockedOrCostlyProductCriteria);
+			console.table(UnderstockedOrCostlyProducts);
+		})
 	});
 
 });
 
+describe('GroupBy', function(){
+	function printGroup(obj){
+		for(var key in obj){
+			describe('[' + key + ']', function(){
+				console.table(obj[key]);
+			});
+		}
+	}
+	describe('Products by category', function(){
+		function groupProductsByCategory(){
+			var result = {};
+			for(var i=0; i < products.length; i++){
+				var category = products[i].category;
+				if (typeof result[category] === 'undefined')
+					result[category] = [];
+				result[category].push(products[i]);
+			}
+			return result;
+		}
+		var productsByCategory = groupProductsByCategory();
+		printGroup(productsByCategory);
+	});
+	describe('any list by any key', function(){
+		function groupBy(list, keySelectorFn){
+			var result = {};
+			for(var i=0; i < list.length; i++){
+				var key = keySelectorFn(list[i]);
+				if (typeof result[key] === 'undefined')
+					result[key] = [];
+				result[key].push(list[i]);
+			}
+			return result;
+		}
+		describe("products by category", function(){
+			var categoryKeySelector = function(product){
+				return product.category;
+			};
+			var productsByCategory = groupBy(products, categoryKeySelector);
+			printGroup(productsByCategory);
+		});
+
+		describe("products by cost", function(){
+			var costKeySelector = function(product){
+				return product.cost >= 50 ? "costly" : "affordable";
+			};
+			var productsByCost = groupBy(products, costKeySelector);
+			printGroup(productsByCost);
+		});
+	});
+});
+
+describe("Transform", function(){
+	function transform(list, fn){
+		var result = [];
+		for(var i=0; i < list.length; i++)
+			result.push(fn(list[i]));
+		return  result;
+	}
+
+	describe("products with discounts [10%] ", function(){
+		var productsWithDiscount = transform(products, function(product){
+			return {
+				id : product.id,
+				name : product.name,
+				cost : product.cost,
+				units : product.units,
+				discountedCost : product.cost * 0.9
+			}
+		});
+		console.table(productsWithDiscount);
+	});
+});
 
 
+function partial(fn){
+    var args = [].slice.call(arguments, 1);
+    return function(){
+        var newArgs = args.concat([].slice.call(arguments,0));
+        return fn.apply(this, newArgs);
+    }
+}
 
 
 

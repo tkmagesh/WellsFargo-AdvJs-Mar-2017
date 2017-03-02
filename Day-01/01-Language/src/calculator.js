@@ -4,7 +4,7 @@ function add(x,y){
 		if (typeof n === 'function') return parseArg(n());
 		return isNaN(n) ? 0 : parseInt(n);
 	}
-	return arguments.length <= 1 ? parseArg(arguments[0]) : parseArg(arguments[0]) + add([].slice.call(arguments, 1));
+	return arguments.length <= 1 ? parseArg(arguments[0]) : parseArg(arguments[0]) + add(Array.prototype.slice.call(arguments, 1));
 }
 
 /*
@@ -14,5 +14,4 @@ Function invocation
 
 2. As a function
 	this -> global scope (window)
-
 */
