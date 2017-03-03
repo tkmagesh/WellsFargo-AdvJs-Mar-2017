@@ -16,11 +16,12 @@ var radio = (function(){
 	}
 
 	Context.prototype.subscribe = function(){
+		var self = this;
 		Array.prototype.forEach.call(arguments, function(subscription){
 			if (Array.isArray(subscription)){
-				this.__subscribers.push(subscription[0].bind(subscription[1]))
+				self.__subscribers.push(subscription[0].bind(subscription[1]))
 			} else if (typeof subscription === 'function'){
-				this.__subscribers.push(subscription)	
+				self.__subscribers.push(subscription)	
 			}
 		});
 		return this;
@@ -29,7 +30,7 @@ var radio = (function(){
 	Context.prototype.unsubscribe = function unsubscribe(){
 		var args = arguments;
 		this.__subscribers = this.__subscribers.filter(function(subscriber){
-			return Array.prototype.indexOf.call(arguments, subscriber) != -1;
+			return Array.prototype.indexOf.call(args, subscriber) === -1;
 		});
 		return this;
 	}
@@ -41,7 +42,6 @@ var radio = (function(){
 		});
 		return this;
 	}
-
 	return radio;
 })()
 
