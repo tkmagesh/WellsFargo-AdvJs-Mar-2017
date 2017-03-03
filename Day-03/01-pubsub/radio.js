@@ -22,13 +22,14 @@ var radio = (function(){
 			} else if (typeof subscription === 'function'){
 				this.__subscribers.push(subscription)	
 			}
-		})
+		});
 		return this;
 	}
 
-	Context.prototype.unsubscribe = function unsubscribe(subscriptionFn){
+	Context.prototype.unsubscribe = function unsubscribe(){
+		var args = arguments;
 		this.__subscribers = this.__subscribers.filter(function(subscriber){
-			return subscriber !== subscriptionFn;
+			return Array.prototype.indexOf.call(arguments, subscriber) != -1;
 		});
 		return this;
 	}
